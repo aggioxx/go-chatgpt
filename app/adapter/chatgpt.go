@@ -13,6 +13,14 @@ type ChatGptInterface interface {
 	SendChat(input string) (string, error)
 }
 
+type ResponseStruct struct {
+	Created float64 `json:"created"`
+	ID      string  `json:"id"`
+	Model   string  `json:"model"`
+	Object  string  `json:"object"`
+	Text    string  `json:"text"`
+}
+
 func SendChat(input string) (string, error) {
 	apiKey := "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"
 
@@ -20,7 +28,7 @@ func SendChat(input string) (string, error) {
 		"temperature": 0,
 		"prompt":      input,
 		"model":       "text-davinci-003",
-		"max_tokens":  40,
+		"max_tokens":  400,
 	})
 	if err != nil {
 		fmt.Println("error mounting request body", err.Error())
@@ -53,12 +61,22 @@ func SendChat(input string) (string, error) {
 		return "", err
 	}
 
-	var response interface{}
-	err = json.Unmarshal(body, &response)
+	var responseMap map[string]interface{}
+	err = json.Unmarshal(body, &responseMap)
 	if err != nil {
 		fmt.Println("unmarshal error:", err)
 		return "", err
 	}
-	fmt.Println(body, response)
+
+	jsonBytes, err := json.MarshalIndent(responseMap, "", "  ")
+	if err != nil {
+		fmt.Println("json marshal error:", err)
+		return "", err
+	}
+
+	fmt.Println(responseMap["text"])
+	fmt.Println("")
+	fmt.Println(string(jsonBytes))
 	return string(body), nil
+
 }
