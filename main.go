@@ -4,26 +4,27 @@ import (
 	chat "go-chatgpt/app/adapter"
 )
 
-/*
-	type chatImpl struct {
-		chat *adapter.ChatGptInterface
-	}
+type Request struct {
+	Message string `json:"message"`
+}
 
-	func NewChatImpl(chat *adapter.ChatGptInterface) *chatImpl {
-		return &chatImpl{
-			chat: chat,
-		}
-	}
-*/
+var messageInput string
+
+func main() {
+	//lambda.Start(lambdaHandler)
+	callChat()
+}
+
 func callChat() string {
-	input := "qual a profissão do lionel messi?"
+	input := "defina cristiano ronaldo em 1 palavra"
 	sendChat, err := chat.SendChat(input)
 	if err != nil {
-		return ""
+		return "error"
 	}
 	return sendChat
 }
 
-func main() {
-	callChat()
-}
+//func lambdaHandler(ctx context.Context, request events.APIGatewayProxyRequest) {
+//	message := request.Body
+//	messageInput = message
+//}
