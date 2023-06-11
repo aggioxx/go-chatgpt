@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>go-openai</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            background-color: var(--bg-color);
+            font-family: Arial, Helvetica, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            transition: background-color 0.3s;
+        }
+
+        .container {
+            background-color: var(--container-bg-color);
+            padding: 20px;
+            border-radius: 10px;
+            transition: background-color 0.3s;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        label {
+            color: var(--label-color);
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-align: left;
+            width: 90%;
+            max-width: 600px;
+        }
+
+        input, select {
+            font-size: 28px;
+            margin-bottom: 10px;
+            width: 90%;
+            max-width: 600px;
+        }
+
+        button {
+            color: var(--button-color);
+            font-size: 24px;
+            width: fit-content;
+            padding: 10px 20px;
+        }
+
+        #result {
+            color: var(--result-color);
+            font-size: 28px;
+            text-align: center;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            display: flex;
+            justify-content: center;
+        }
+
+        @media screen and (min-width: 768px) {
+            label, input, select, button, #result {
+                width: 80%;
+                max-width: 600px;
+            }
+        }
+
+        @media screen and (max-width: 600px) {
+            label, input, select, button, #result {
+                max-width: 90%;
+                width: 90%;
+                font-size: 24px;
+            }
+        }
+
+        [data-theme="light"] {
+            --bg-color: #ffffff;
+            --container-bg-color: #f5f5f5;
+            --label-color: #FF9900;
+            --button-color: #FF9900;
+            --result-color: #FF9900;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #232F3E;
+            --container-bg-color: #333333;
+            --label-color: #FF9900;
+            --button-color: #FF9900;
+            --result-color: #FF9900;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="switcher">
+        <input type="checkbox" id="modeSwitch">
+        <label for="modeSwitch">
+            <i class="fas fa-moon"></i>
+            <i class="fas fa-sun"></i>
+        </label>
+    </div>
+    <form id="iaFront">
+        <label>Digite seu input para a IA ou selecione um pré-definido:</label>
+        <br>
+        <input type="text" id="inputData">
+        <br>
+        <select id="messageList">
+            <option value="">Selecione um input</option>
+            <option value="%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/1, changed state to up"> %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/1, changed state to up</option>
+            <option value="%LINK-3-UPDOWN: Interface FastEthernet0/0, changed state to up">%LINK-3-UPDOWN: Interface FastEthernet0/0, changed state to up</option>
+            <option value="%CDP-4-DUPLEX_MISMATCH: Full/half duplex mismatch detected on interface GigabitEthernet1/0/1 (not full duplex), with Switch GigabitEthernet2/0/1 (full duplex)">%CDP-4-DUPLEX_MISMATCH: Full/half duplex mismatch detected on interface GigabitEthernet1/0/1 (not full duplex), with Switch GigabitEthernet2/0/1 (full duplex)</option>
+            <option value="%SYS-5-CONFIG_I: Configured from console by admin on vty0 (192.168.0.1)">%SYS-5-CONFIG_I: Configured from console by admin on vty0 (192.168.0.1)</option>
+        </select>
+        <br>
+        <button type="submit">Enviar</button>
+    </form>
+    <div id="result"></div>
+</div>
+<script>
+    document.getElementById("iaFront").addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        var inputData = document.getElementById("inputData").value;
+        var messageList = document.getElementById("messageList");
+        var selectedMessage = messageList.options[messageList.selectedIndex].value;
+
+        if (selectedMessage) {
+            inputData = selectedMessage;
+        }
+
+        fetch("https://u76v1jznr4.execute-api.us-east-1.amazonaws.com/dev/entries", {
+            method: "POST",
+            body: JSON.stringify({data: inputData}),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("result").textContent = JSON.stringify(data);
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+        alert("Requisição enviada para a openAI, aguarde 15s");
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+
+        var modeSwitch = document.getElementById("modeSwitch");
+        var modeSwitchLabel = document.querySelector("label[for='modeSwitch']");
+        var htmlElement = document.documentElement;
+
+
+        function toggleDarkMode() {
+            var isDarkMode = htmlElement.getAttribute("data-theme") === "dark";
+            htmlElement.setAttribute("data-theme", isDarkMode ? "light" : "dark");
+        }
+
+        function handleModeSwitchClick() {
+            toggleDarkMode();
+            updateModeSwitchLabel();
+        }
+
+        function updateModeSwitchLabel() {
+            var isDarkMode = htmlElement.getAttribute("data-theme") === "dark";
+            var iconClass = isDarkMode ? "fas fa-sun" : "fas fa-moon";
+            var labelText = isDarkMode ? "Light" : "Dark";
+
+            modeSwitchLabel.innerHTML = `<i class="${iconClass}"></i> ${labelText}`;
+        }
+
+        // Add event listener to the mode switch
+        modeSwitch.addEventListener("change", handleModeSwitchClick);
+
+        // Set initial mode switch label based on the current mode
+        updateModeSwitchLabel();
+    });
+</script>
+</body>
+</html>
