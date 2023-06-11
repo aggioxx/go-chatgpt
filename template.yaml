@@ -1,0 +1,19 @@
+Resources:
+  chatgptFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app/handleRequest
+      Runtime: go1.x
+      MemorySize: 128
+      Timeout: 100
+      Description: Httpzada
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /entries
+            Method: POST
+#Outputs:
+#  WebEndpoint:
+#    Description: "API Gateway endpoint URL for Prod stage"
+#    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"

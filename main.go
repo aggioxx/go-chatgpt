@@ -1,18 +1,28 @@
 package main
 
 import (
-	chat "go-chatgpt/app/adapter"
+	"fmt"
+	"github.com/aws/aws-lambda-go/lambda"
+	"go-chatgpt/app/adapter"
+	"strings"
 )
 
-func callChat() string {
-	input := "what is a nil pointer exception in golang"
-	sendChat, err := chat.SendChat(input)
+type MyInputType struct {
+	Data string `json:"data"`
+}
+
+func handleRequest(input MyInputType) (string, error) {
+
+	generatedText, err := adapter.SendChat(input.Data)
 	if err != nil {
-		return ""
+		fmt.Println("error calling SendChat:", err)
+		return "", err
 	}
-	return sendChat
+
+	generatedText = strings.TrimPrefix(generatedText, "\n\n")
+	return generatedText, nil
 }
 
 func main() {
-	callChat()
+	lambda.Start(handleRequest)
 }

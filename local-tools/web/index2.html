@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <title>go-openai</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            background-color: var(--bg-color);
+            font-family: Arial, Helvetica, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            transition: background-color 0.3s;
+        }
+
+        .container {
+            background-color: var(--container-bg-color);
+            padding: 20px;
+            border-radius: 10px;
+            transition: background-color 0.3s;
+            max-width: 90%;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        label {
+            color: var(--label-color);
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-align: left;
+            width: 90%;
+            max-width: 600px;
+        }
+
+        input, select {
+            font-size: 28px;
+            margin-bottom: 10px;
+            width: 90%;
+            max-width: 600px;
+        }
+
+        button {
+            color: var(--button-color);
+            font-size: 24px;
+            width: fit-content;
+            padding: 10px 20px;
+        }
+
+        select#messageList option:first-child {
+            text-align: center;
+        }
+
+        #result {
+            color: var(--result-color);
+            font-size: 28px;
+            text-align: center;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            display: flex;
+            justify-content: center;
+        }
+
+        @media screen and (min-width: 768px) {
+            label, input, select, button, #result {
+                width: 80%;
+                max-width: 600px;
+            }
+        }
+
+        @media screen and (max-width: 600px) {
+            label, input, select, button, #result {
+                max-width: 90%;
+                width: 90%;
+                font-size: 24px;
+            }
+        }
+
+        .switcher {
+            display: inline-block;
+            position: relative;
+            width: 48px;
+            height: 24px;
+            border-radius: 12px;
+            background-color: var(--slider-bg-color);
+            transition: background-color 0.3s;
+            cursor: pointer;
+        }
+
+        .switcher:before {
+            content: "";
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background-color: var(--switcher-bg-color);
+            transition: transform 0.3s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .switcher[data-theme="dark"]:before {
+            transform: translateX(24px);
+        }
+
+        .switcher-label {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            padding-left: 4px;
+            user-select: none;
+        }
+
+        .switcher-label i {
+            color: var(--label-color);
+            font-size: 18px;
+            margin-right: 6px;
+        }
+
+        [data-theme="light"] {
+            --bg-color: #ffffff;
+            --container-bg-color: #f5f5f5;
+            --label-color: #FF9900;
+            --button-color: #FF9900;
+            --result-color: #FF9900;
+            --slider-bg-color: #e9e9e9;
+            --switcher-bg-color: #ffffff;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #232F3E;
+            --container-bg-color: #333333;
+            --label-color: #FF9900;
+            --button-color: #FF9900;
+            --result-color: #FF9900;
+            --slider-bg-color: #4d4d4d;
+            --switcher-bg-color: #555555;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="switcher" onclick="toggleTheme()">
+        <div class="switcher-label">
+            <i class="fas fa-moon"></i>
+            <i class="fas fa-sun"></i>
+        </div>
+    </div>
+    <form id="iaFront">
+        <label>Digite seu input para a IA ou selecione um pré-definido:</label>
+        <br>
+        <input type="text" id="inputData" placeholder="Digite seu input personlizado">
+        <br>
+        <select id="messageList">
+            <option value="">Selecione um input</option>
+            <option value="%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/1, changed state to up"> %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/1, changed state to up</option>
+            <option value="%LINK-3-UPDOWN: Interface FastEthernet0/0, changed state to up">%LINK-3-UPDOWN: Interface FastEthernet0/0, changed state to up</option>
+            <option value="%CDP-4-DUPLEX_MISMATCH: Full/half duplex mismatch detected on interface GigabitEthernet1/0/1 (not full duplex), with Switch GigabitEthernet2/0/1 (full duplex)">%CDP-4-DUPLEX_MISMATCH: Full/half duplex mismatch detected on interface GigabitEthernet1/0/1 (not full duplex), with Switch GigabitEthernet2/0/1 (full duplex)</option>
+            <option value="%SYS-5-CONFIG_I: Configured from console by admin on vty0 (192.168.0.1)">%SYS-5-CONFIG_I: Configured from console by admin on vty0 (192.168.0.1)</option>
+        </select>
+        <br>
+        <button type="submit">Enviar</button>
+    </form>
+    <div id="result"></div>
+</div>
+<script>
+    document.getElementById("iaFront").addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        var inputData = document.getElementById("inputData").value;
+        var messageList = document.getElementById("messageList");
+        var selectedMessage = messageList.options[messageList.selectedIndex].value;
+
+        if (selectedMessage) {
+            inputData = selectedMessage;
+        }
+
+        fetch("https://u76v1jznr4.execute-api.us-east-1.amazonaws.com/dev/entries", {
+            method: "POST",
+            body: JSON.stringify({ data: inputData }),
+            headers: {
+                "Content-Type": "application/json",
+            },
+        })
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (data) {
+                document.getElementById("result").innerHTML = data.result;
+            })
+            .catch(function (error) {
+                alert("An error occurred: " + error);
+            });
+    });
+
+    function toggleTheme() {
+        var currentTheme = document.documentElement.getAttribute("data-theme");
+        var switcher = document.querySelector(".switcher");
+
+        if (currentTheme === "dark") {
+            document.documentElement.setAttribute("data-theme", "light");
+            switcher.removeAttribute("data-theme");
+        } else {
+            document.documentElement.setAttribute("data-theme", "dark");
+            switcher.setAttribute("data-theme", "dark");
+        }
+    }
+</script>
+</body>
+</html>

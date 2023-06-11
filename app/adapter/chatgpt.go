@@ -14,11 +14,16 @@ type ChatGptInterface interface {
 }
 
 type ResponseStruct struct {
-	Created float64 `json:"created"`
-	ID      string  `json:"id"`
-	Model   string  `json:"model"`
-	Object  string  `json:"object"`
-	Text    string  `json:"text"`
+	Created float64  `json:"created"`
+	ID      string   `json:"id"`
+	Model   string   `json:"model"`
+	Object  string   `json:"object"`
+	Choices []Choice `json:"choices"`
+}
+
+type Choice struct {
+	Text         string `json:"text"`
+	FinishReason string `json:"finish_reason"`
 }
 
 func SendChat(input string) (string, error) {
@@ -61,22 +66,17 @@ func SendChat(input string) (string, error) {
 		return "", err
 	}
 
-	var responseMap map[string]interface{}
-	err = json.Unmarshal(body, &responseMap)
+	var response ResponseStruct
+	err = json.Unmarshal(body, &response)
 	if err != nil {
 		fmt.Println("unmarshal error:", err)
 		return "", err
 	}
 
-	jsonBytes, err := json.MarshalIndent(responseMap, "", "  ")
-	if err != nil {
-		fmt.Println("json marshal error:", err)
-		return "", err
+	var generatedText string
+	if len(response.Choices) > 0 {
+		generatedText = response.Choices[0].Text
 	}
 
-	fmt.Println(responseMap["text"])
-	fmt.Println("")
-	fmt.Println(string(jsonBytes))
-	return string(body), nil
-
+	return generatedText, nil
 }
